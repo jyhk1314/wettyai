@@ -8,9 +8,8 @@ import type { SSH } from '../shared/interfaces';
 import type { Socket } from 'socket.io';
 
 const localhost = (host: string): boolean =>
-  !_.isUndefined(process.getuid) &&
-  process.getuid() === 0 &&
-  (host === 'localhost' || host === '0.0.0.0' || host === '127.0.0.1');
+  (host === 'localhost' || host === '0.0.0.0' || host === '127.0.0.1') &&
+  (process.platform !== 'win32' ? process.getuid?.() === 0 : true);
 
 const urlArgs = (
   referer: string | undefined,

@@ -9,7 +9,8 @@ import {sassPlugin} from 'esbuild-sass-plugin';
  * @returns {[ChildProcess, Promise<{ret: number, sig: NodeJS.Signals}>]}
  */
 function cmd(prog, args=[]) {
-    const proc = spawn(prog, args, { cwd: import.meta.dirname, stdio: "inherit", env: process.env});
+    const isWin = process.platform === 'win32';
+    const proc = spawn(isWin ? prog + '.cmd' : prog, args, { cwd: import.meta.dirname, stdio: "inherit", env: process.env});
     const done = new Promise((resolve, _reject) => {
         proc.addListener('exit',(ret, sig)=>{
             resolve({ret,sig});

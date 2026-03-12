@@ -11,10 +11,29 @@ export async function spawn(
   args: string[],
 ): Promise<void> {
   const logger = getLogger();
-  const version = await envVersionOr(0);
-  const cmd = version >= 9 ? ['-S', ...args] : args;
-  logger.debug('Spawning PTY', { cmd });
-  const term = pty.spawn('/usr/bin/env', cmd, xterm);
+  const isWindows = process.platform === 'win32';
+  
+  let cmd: string[];
+  if (isWindows) {
+    cmd = args;
+  } else {
+    const version = await envVersionOr(0);
+    cmd = version >= 9 ? ['-S', ...args] : args;
+  }
+  
+  logger.debug('Spawning PTY', { cmd, isWindows });
+  const shell = isWindows ? process.env.COMSPEC || 'cmd.exe' : '/usr/bin/env';
+  logger.info('About to spawn', { shell, cmd });
+  
+  let term;
+  try {
+    term = pty.spawn(shell, cmd, xterm);
+    logger.info('PTY spawned successfully', { pid: term.pid });
+  } catch (err) {
+    logger.error('Failed to spawn PTY', { error: err });
+    throw err;
+  }
+  
   const { pid } = term;
   const address = args[0] === 'ssh' ? args[1] : 'localhost';
   logger.info('Process Started on behalf of user', { pid, address });
