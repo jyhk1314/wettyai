@@ -18,6 +18,33 @@ library.add(faCogs);
 library.add(faKeyboard);
 dom.watch();
 
+// 根据URL路径设置不同的背景颜色
+function setSessionBackgroundColor(): void {
+  const pathParts = window.location.pathname.split('/').filter(Boolean);
+  const lastPart = pathParts[pathParts.length - 1];
+  const sessionNum = parseInt(lastPart, 10);
+
+  const colorMap: Record<number, string> = {
+    1: '#1a1a2e',  // 深蓝紫
+    2: '#16213e',  // 深蓝
+    3: '#0f3460',  // 海军蓝
+    4: '#1b4332',  // 深绿
+    5: '#2d3436',  // 深灰
+    6: '#2c1810',  // 深棕
+    7: '#1a1a1a',  // 纯黑
+    8: '#0d1b2a',  // 深海蓝
+    9: '#1c1c1c',  // 暗灰
+  };
+
+  if (!isNaN(sessionNum) && sessionNum >= 1) {
+    const color = colorMap[sessionNum] || '#000000';
+    document.documentElement.style.setProperty('--session-bg', color);
+    document.body.style.backgroundColor = color;
+  }
+}
+
+setSessionBackgroundColor();
+
 function onResize(term: Term): () => void {
   return function resize() {
     term.resizeTerm();

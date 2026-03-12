@@ -18,7 +18,7 @@
   },
 
   forceSSH: false,  // Force sshing to local machine over login if running as root
-  command: 'login', // Command to run on server. Login will use ssh if connecting to different server
+  command: 'shell', // Command to run on server. Use 'shell' for Windows
   /*
   ssl:{
     key: 'ssl.key',
