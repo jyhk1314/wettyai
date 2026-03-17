@@ -3,14 +3,19 @@ import { chromium } from 'playwright';
 import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+/** 三个终端分别使用的端口与工作路径（使用 301x 避免与默认 3000 冲突导致复用已有 WeTTY） */
+const WETTY_TAB_CONFIG = [
+    { port: 3010, cwd: 'D:\\' },
+    { port: 3011, cwd: 'D:\\github' },
+    { port: 3012, cwd: 'D:\\github\\wettyai' },
+];
 class WeTTYTestBridge {
     constructor() {
-        this.wettyProcess = null;
+        this.wettyProcesses = [];
         this.browser = null;
         this.expressServer = null;
         this.httpServer = null;
         this.io = null;
-        this.wettyPort = 3000;
         this.bridgePort = 3100;
         this.tabs = new Map();
         this.pollingIntervals = new Map();
@@ -23,7 +28,7 @@ class WeTTYTestBridge {
         await this.startExpressServer();
         console.log('所有服务启动完成！');
         console.log(`测试页面地址: http://localhost:${this.bridgePort}`);
-        console.log('支持 3 个独立终端会话 (Tab 1, 2, 3)');
+        console.log('支持 3 个独立终端: Tab1 工作路径 D:, Tab2 D:\\github, Tab3 D:\\github\\wettyai');
     }
     isPortInUse(port) {
         try {
@@ -35,39 +40,53 @@ class WeTTYTestBridge {
         }
     }
     async ensureWeTTYRunning() {
-        if (this.isPortInUse(this.wettyPort)) {
-            console.log(`端口 ${this.wettyPort} 已有服务运行，跳过启动 WeTTY`);
+        const toStart = WETTY_TAB_CONFIG.filter(({ port }) => !this.isPortInUse(port));
+        if (toStart.length === 0) {
+            console.log('所有 WeTTY 端口已有服务运行，跳过启动');
             return;
         }
-        console.log('正在启动 WeTTY 服务...');
-        return new Promise((resolve, reject) => {
-            this.wettyProcess = spawn('node', ['build/main.js', '--conf', 'conf/config.json5', '--port', String(this.wettyPort)], {
-                cwd: process.cwd(),
-                stdio: 'pipe'
+        console.log('正在启动 3 个 WeTTY 服务（不同工作路径）...');
+        await Promise.all(WETTY_TAB_CONFIG.map(({ port, cwd }) => {
+            if (this.isPortInUse(port)) {
+                console.log(`端口 ${port} 已有服务，跳过`);
+                return Promise.resolve();
+            }
+            return new Promise((resolve, reject) => {
+                const proc = spawn('node', [
+                    'build/main.js',
+                    '--conf', 'conf/config.json5',
+                    '--port', String(port),
+                    '--cwd', cwd,
+                ], {
+                    cwd: process.cwd(),
+                    stdio: 'pipe',
+                });
+                this.wettyProcesses.push(proc);
+                proc.stdout?.on('data', (data) => {
+                    const output = data.toString();
+                    console.log(`[WeTTY:${port}]`, output);
+                    if (output.includes('Server listening') || output.includes('Starting server')) {
+                        setTimeout(resolve, 1500);
+                    }
+                });
+                proc.stderr?.on('data', (data) => {
+                    console.error(`[WeTTY:${port} Error]`, data.toString());
+                });
+                proc.on('error', (err) => {
+                    console.error(`WeTTY 进程 ${port} 启动失败:`, err);
+                    reject(err);
+                });
+                setTimeout(() => {
+                    if (this.isPortInUse(port)) {
+                        resolve();
+                    }
+                    else {
+                        reject(new Error(`WeTTY 端口 ${port} 启动超时`));
+                    }
+                }, 12000);
             });
-            this.wettyProcess.stdout?.on('data', (data) => {
-                const output = data.toString();
-                console.log('[WeTTY]', output);
-                if (output.includes('Server listening') || output.includes('Starting server')) {
-                    setTimeout(resolve, 2000);
-                }
-            });
-            this.wettyProcess.stderr?.on('data', (data) => {
-                console.error('[WeTTY Error]', data.toString());
-            });
-            this.wettyProcess.on('error', (err) => {
-                console.error('WeTTY 进程启动失败:', err);
-                reject(err);
-            });
-            setTimeout(() => {
-                if (this.isPortInUse(this.wettyPort)) {
-                    resolve();
-                }
-                else {
-                    reject(new Error('WeTTY 启动超时'));
-                }
-            }, 10000);
-        });
+        }));
+        console.log('所有 WeTTY 服务已就绪');
     }
     async startBrowser() {
         console.log('正在启动无头浏览器...');
@@ -93,9 +112,11 @@ class WeTTYTestBridge {
             viewport: { width: 1200, height: 800 }
         });
         const page = await context.newPage();
-        const wettyPath = `/wetty/${tabId}`;
-        console.log(`Tab ${tabId} 访问: http://localhost:${this.wettyPort}${wettyPath}`);
-        await page.goto(`http://localhost:${this.wettyPort}${wettyPath}`, { waitUntil: 'networkidle' });
+        const { port, cwd } = WETTY_TAB_CONFIG[tabId - 1];
+        const wettyPath = '/wetty/';
+        const url = `http://localhost:${port}${wettyPath}`;
+        console.log(`Tab ${tabId} 访问: ${url} (工作路径: ${cwd})`);
+        await page.goto(url, { waitUntil: 'networkidle' });
         await page.waitForSelector('.xterm', { timeout: 10000 }).catch(() => {
             console.log(`Tab ${tabId}: 等待终端元素加载...`);
         });
@@ -195,7 +216,7 @@ class WeTTYTestBridge {
             cors: { origin: '*' }
         });
         this.expressServer.use(express.static('tests/bridge-client'));
-        this.expressServer.get('/api/tabs', (req, res) => {
+        this.expressServer.get('/api/tabs', (_req, res) => {
             const tabsInfo = Array.from(this.tabs.entries()).map(([id, tab]) => ({
                 id,
                 size: tab.size,
@@ -298,7 +319,10 @@ class WeTTYTestBridge {
         this.io?.close();
         this.httpServer?.close();
         await this.browser?.close();
-        this.wettyProcess?.kill();
+        for (const proc of this.wettyProcesses) {
+            proc.kill();
+        }
+        this.wettyProcesses = [];
         console.log('所有服务已停止');
     }
 }

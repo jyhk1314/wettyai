@@ -1,3 +1,4 @@
+import path from 'path';
 import isUndefined from 'lodash/isUndefined.js';
 import pty from 'node-pty';
 import { logger as getLogger } from '../shared/logger.js';
@@ -9,10 +10,12 @@ import type SocketIO from 'socket.io';
 export async function spawn(
   socket: SocketIO.Socket,
   args: string[],
+  options?: { cwd?: string },
 ): Promise<void> {
   const logger = getLogger();
   const isWindows = process.platform === 'win32';
-  
+  const cwd = path.resolve(options?.cwd ?? process.cwd());
+
   let cmd: string[];
   if (isWindows) {
     cmd = args;
@@ -20,14 +23,15 @@ export async function spawn(
     const version = await envVersionOr(0);
     cmd = version >= 9 ? ['-S', ...args] : args;
   }
-  
-  logger.debug('Spawning PTY', { cmd, isWindows });
+
+  logger.debug('Spawning PTY', { cmd, isWindows, cwd });
   const shell = isWindows ? process.env.COMSPEC || 'cmd.exe' : '/usr/bin/env';
   logger.info('About to spawn', { shell, cmd });
-  
+
+  const ptyOptions = { ...xterm, cwd };
   let term;
   try {
-    term = pty.spawn(shell, cmd, xterm);
+    term = pty.spawn(shell, cmd, ptyOptions);
     logger.info('PTY spawned successfully', { pid: term.pid });
   } catch (err) {
     logger.error('Failed to spawn PTY', { error: err });

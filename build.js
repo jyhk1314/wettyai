@@ -10,7 +10,15 @@ import {sassPlugin} from 'esbuild-sass-plugin';
  */
 function cmd(prog, args=[]) {
     const isWin = process.platform === 'win32';
-    const proc = spawn(isWin ? prog + '.cmd' : prog, args, { cwd: import.meta.dirname, stdio: "inherit", env: process.env});
+    const opts = {
+        cwd: import.meta.dirname,
+        stdio: "inherit",
+        env: process.env,
+    };
+    if (isWin) {
+        opts.shell = true;
+    }
+    const proc = spawn(prog, args, opts);
     const done = new Promise((resolve, _reject) => {
         proc.addListener('exit',(ret, sig)=>{
             resolve({ret,sig});

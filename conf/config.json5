@@ -15,6 +15,7 @@
     host:         '0.0.0.0',                           // address to listen on
     title:        'WeTTY - The Web Terminal Emulator', // Page title
     bypassHelmet: false,                               // Disable Helmet security checks
+    // cwd:       '/home/user',                        // 新终端初始工作目录，不设则使用启动目录
   },
 
   forceSSH: false,  // Force sshing to local machine over login if running as root
@@ -25,9 +26,9 @@
     enabled: true,  // 是否启用关键字高亮
     keywords: [
       // 错误相关
-      { pattern: 'error', backgroundColor: 'rgba(246, 5, 5, 0.99)', description: '错误' },
-      { pattern: 'Error', backgroundColor: 'rgba(6, 249, 75, 0.92)' },
-      { pattern: 'ERROR', backgroundColor: 'rgba(255, 107, 107, 0.25)' },
+      { pattern: 'error', backgroundColor: 'rgba(246, 5, 5, 0.34)', description: '错误' },
+      { pattern: 'Error', backgroundColor: 'rgba(246, 5, 5, 0.34)' },
+      { pattern: 'ERROR', backgroundColor: 'rgba(246, 5, 5, 0.34)' },
       { pattern: 'failed', backgroundColor: 'rgba(255, 159, 67, 0.25)', description: '失败' },
       { pattern: 'Failed', backgroundColor: 'rgba(255, 159, 67, 0.25)' },
       { pattern: 'FAILED', backgroundColor: 'rgba(255, 159, 67, 0.25)' },

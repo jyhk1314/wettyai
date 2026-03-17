@@ -105,6 +105,10 @@ const opts = yargs(hideBin(process.argv))
       'Allow WeTTY to be embedded in an iframe, defaults to allowing same origin',
     type: 'boolean',
   })
+  .option('cwd', {
+    description: 'Initial working directory for new terminal windows',
+    type: 'string',
+  })
   .option('allow-remote-hosts', {
     description:
       'Allow WeTTY to use the `host` and `port` params in a url as ssh destination',

@@ -41,13 +41,15 @@ export interface SSLBuffer {
 }
 
 export interface Server {
-  [s: string]: string | number | boolean;
+  [s: string]: string | number | boolean | undefined;
   port: number;
   host: string;
   socket: string | boolean;
   title: string;
   base: string;
   allowIframe: boolean;
+  /** 新开终端时的初始工作目录，不设则使用进程启动目录 */
+  cwd?: string;
 }
 
 export interface Config {

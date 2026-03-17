@@ -1,19 +1,21 @@
-import { dirname, resolve as resolvePath } from 'path';
+import path from 'path';
 import { fileURLToPath } from 'url';
 import pty from 'node-pty';
 import { xterm } from './shared/xterm.js';
 import type SocketIO from 'socket.io';
 
-const executable = resolvePath(
-  dirname(fileURLToPath(import.meta.url)),
+const executable = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
   '..',
   'buffer.js',
 );
 
-export function login(socket: SocketIO.Socket): Promise<string> {
+export function login(socket: SocketIO.Socket, cwd?: string): Promise<string> {
   // Request carries no username information
   // Create terminal and ask user for username
-  const term = pty.spawn('/usr/bin/env', ['node', executable], xterm);
+  const resolvedCwd = path.resolve(cwd ?? process.cwd());
+  const ptyOptions = { ...xterm, cwd: resolvedCwd };
+  const term = pty.spawn('/usr/bin/env', ['node', executable], ptyOptions);
   let buf = '';
   return new Promise((resolve, reject) => {
     term.onExit(({ exitCode }) => {

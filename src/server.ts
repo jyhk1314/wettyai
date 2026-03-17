@@ -78,9 +78,9 @@ export async function decorateServerWithSsh(
     wettyConnections.inc();
 
     try {
-      const args = await getCommand(socket, ssh, command, forcessh);
+      const args = await getCommand(socket, ssh, command, forcessh, serverConf.cwd);
       logger.debug('Command Generated', { cmd: args.join(' ') });
-      await spawn(socket, args);
+      await spawn(socket, args, { cwd: serverConf.cwd });
     } catch (error) {
       logger.info('Disconnect signal sent', { err: error });
       wettyConnections.dec();

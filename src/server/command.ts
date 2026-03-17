@@ -43,7 +43,8 @@ export async function getCommand(
     allowRemoteCommand,
   }: SSH,
   command: string,
-  forcessh: boolean
+  forcessh: boolean,
+  cwd?: string,
 ): Promise<string[]> {
   const {
     request: { headers: { referer } },
@@ -54,7 +55,7 @@ export async function getCommand(
     return loginOptions(command, remoteAddress);
   }
 
-  const sshAddress = await address(socket, user, host);
+  const sshAddress = await address(socket, user, host, cwd);
   const args = {
     host: sshAddress,
     port: `${port}`,
