@@ -93,6 +93,7 @@ export async function loadConfigFile(filepath?: string): Promise<Config> {
       : ensureBoolean(parsed.forceSSH),
     ssl: parsed.ssl,
     logLevel: parseLogLevel(defaultLogLevel, parsed.logLevel),
+    keywordHighlight: parsed.keywordHighlight,
   };
 }
 
@@ -156,5 +157,6 @@ export function mergeCliConf(opts: Arguments, config: Config): Config {
       : ensureBoolean(opts['force-ssh']),
     ssl: isUndefined(ssl.key) || isUndefined(ssl.cert) ? undefined : ssl,
     logLevel: parseLogLevel(config.logLevel, opts['log-level']),
+    keywordHighlight: config.keywordHighlight,
   };
 }

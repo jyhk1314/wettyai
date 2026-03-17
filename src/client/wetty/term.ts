@@ -6,22 +6,43 @@ import _ from 'lodash';
 
 import { terminal as termElement } from './disconnect/elements';
 import { configureTerm } from './term/confiruragtion';
+import { KeywordHighlightAddon, KeywordRule } from './term/keyword-highlight';
 import { loadOptions } from './term/load';
 import type { Options } from './term/options';
 import type { Socket } from 'socket.io-client';
 
+declare global {
+  interface Window {
+    __WETTY_CONFIG__?: {
+      keywordHighlight?: {
+        enabled?: boolean;
+        keywords?: KeywordRule[];
+      };
+    };
+  }
+}
+
 export class Term extends Terminal {
   socket: Socket;
   fitAddon: FitAddon;
+  keywordHighlight: KeywordHighlightAddon;
   loadOptions: () => Options;
 
   constructor(socket: Socket) {
     super({ allowProposedApi: true });
     this.socket = socket;
     this.fitAddon = new FitAddon();
+    const configKeywords = window.__WETTY_CONFIG__?.keywordHighlight?.keywords;
+    const configEnabled = window.__WETTY_CONFIG__?.keywordHighlight?.enabled;
+    this.keywordHighlight = new KeywordHighlightAddon({
+      keywords: configKeywords,
+      enabled: configEnabled !== false,
+    });
+    
     this.loadAddon(this.fitAddon);
     this.loadAddon(new WebLinksAddon());
     this.loadAddon(new ImageAddon());
+    this.loadAddon(this.keywordHighlight);
     this.loadOptions = loadOptions;
   }
 
@@ -211,6 +232,15 @@ declare global {
     pressTAB?: () => void;
     pressLEFT?: () => void;
     pressRIGHT?: () => void;
+    wettyKeywordHighlight?: {
+      enable: () => void;
+      disable: () => void;
+      isEnabled: () => boolean;
+      setKeywords: (keywords: KeywordRule[]) => void;
+      getKeywords: () => KeywordRule[];
+      addKeyword: (keyword: KeywordRule) => void;
+      removeKeyword: (pattern: string | RegExp) => void;
+    };
   }
 }
 
@@ -232,5 +262,14 @@ export function terminal(socket: Socket): Term | undefined {
   window.pressTAB = pressTAB;
   window.pressLEFT = pressLEFT;
   window.pressRIGHT = pressRIGHT;
+  window.wettyKeywordHighlight = {
+    enable: () => term.keywordHighlight.setEnabled(true),
+    disable: () => term.keywordHighlight.setEnabled(false),
+    isEnabled: () => term.keywordHighlight.isEnabled(),
+    setKeywords: (keywords: KeywordRule[]) => term.keywordHighlight.setKeywords(keywords),
+    getKeywords: () => term.keywordHighlight.getKeywords(),
+    addKeyword: (keyword: KeywordRule) => term.keywordHighlight.addKeyword(keyword),
+    removeKeyword: (pattern: string | RegExp) => term.keywordHighlight.removeKeyword(pattern),
+  };
   return term;
 }

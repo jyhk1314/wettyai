@@ -8,7 +8,7 @@ import { favicon, redirect } from './socketServer/middleware.js';
 import { policies } from './socketServer/security.js';
 import { listen } from './socketServer/socket.js';
 import { loadSSL } from './socketServer/ssl.js';
-import type { SSL, SSLBuffer, Server } from '../shared/interfaces.js';
+import type { SSL, SSLBuffer, Server, KeywordHighlightConfig } from '../shared/interfaces.js';
 import type { Express } from 'express';
 import type SocketIO from 'socket.io';
 
@@ -16,6 +16,7 @@ export async function server(
   app: Express,
   { base, port, host, title, allowIframe, socket }: Server,
   ssl?: SSL,
+  keywordHighlight?: KeywordHighlightConfig,
 ): Promise<SocketIO.Server> {
   const basePath = trim(base);
   logger().info('Starting server', {
@@ -25,7 +26,7 @@ export async function server(
     title,
   });
 
-  const client = html(basePath, title);
+  const client = html(basePath, title, keywordHighlight);
   app
     .disable('x-powered-by')
     .use(metricMiddleware(basePath))

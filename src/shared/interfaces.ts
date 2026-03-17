@@ -1,5 +1,21 @@
 import type winston from 'winston';
 
+export interface KeywordRule {
+  pattern: string;
+  backgroundColor?: string;
+  foregroundColor?: string;
+  borderColor?: string;
+  borderWidth?: string;
+  borderRadius?: string;
+  fontWeight?: string;
+  description?: string;
+}
+
+export interface KeywordHighlightConfig {
+  enabled?: boolean;
+  keywords?: KeywordRule[];
+}
+
 export interface SSH {
   [s: string]: string | number | boolean | undefined;
   user: string;
@@ -41,4 +57,5 @@ export interface Config {
   command: string;
   logLevel: typeof winston.level;
   ssl?: SSL;
+  keywordHighlight?: KeywordHighlightConfig;
 }

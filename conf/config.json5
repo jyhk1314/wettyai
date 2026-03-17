@@ -19,6 +19,48 @@
 
   forceSSH: false,  // Force sshing to local machine over login if running as root
   command: 'shell', // Command to run on server. Use 'shell' for Windows
+
+  // 关键字高亮配置
+  keywordHighlight: {
+    enabled: true,  // 是否启用关键字高亮
+    keywords: [
+      // 错误相关
+      { pattern: 'error', backgroundColor: 'rgba(246, 5, 5, 0.99)', description: '错误' },
+      { pattern: 'Error', backgroundColor: 'rgba(6, 249, 75, 0.92)' },
+      { pattern: 'ERROR', backgroundColor: 'rgba(255, 107, 107, 0.25)' },
+      { pattern: 'failed', backgroundColor: 'rgba(255, 159, 67, 0.25)', description: '失败' },
+      { pattern: 'Failed', backgroundColor: 'rgba(255, 159, 67, 0.25)' },
+      { pattern: 'FAILED', backgroundColor: 'rgba(255, 159, 67, 0.25)' },
+      { pattern: 'exception', backgroundColor: 'rgba(240, 101, 149, 0.25)', description: '异常' },
+      { pattern: 'Exception', backgroundColor: 'rgba(240, 101, 149, 0.25)' },
+      { pattern: 'fatal', backgroundColor: 'rgba(255, 0, 0, 0.3)', description: '致命错误' },
+      { pattern: 'FATAL', backgroundColor: 'rgba(255, 0, 0, 0.3)' },
+      
+      // 成功相关
+      { pattern: 'success', backgroundColor: 'rgba(81, 207, 102, 0.25)', description: '成功' },
+      { pattern: 'Success', backgroundColor: 'rgba(81, 207, 102, 0.25)' },
+      { pattern: 'SUCCESS', backgroundColor: 'rgba(81, 207, 102, 0.25)' },
+      { pattern: 'done', backgroundColor: 'rgba(81, 207, 102, 0.2)', description: '完成' },
+      { pattern: 'Done', backgroundColor: 'rgba(81, 207, 102, 0.2)' },
+      { pattern: 'DONE', backgroundColor: 'rgba(81, 207, 102, 0.2)' },
+      { pattern: 'complete', backgroundColor: 'rgba(81, 207, 102, 0.2)' },
+      { pattern: 'Complete', backgroundColor: 'rgba(81, 207, 102, 0.2)' },
+      
+      // 警告相关
+      { pattern: 'warning', backgroundColor: 'rgba(255, 212, 59, 0.25)', description: '警告' },
+      { pattern: 'Warning', backgroundColor: 'rgba(255, 212, 59, 0.25)' },
+      { pattern: 'WARNING', backgroundColor: 'rgba(255, 212, 59, 0.25)' },
+      { pattern: 'warn', backgroundColor: 'rgba(255, 212, 59, 0.2)' },
+      { pattern: 'WARN', backgroundColor: 'rgba(255, 212, 59, 0.2)' },
+      
+      // 信息相关
+      { pattern: 'info', backgroundColor: 'rgba(116, 192, 252, 0.2)', description: '信息' },
+      { pattern: 'INFO', backgroundColor: 'rgba(116, 192, 252, 0.2)' },
+      { pattern: 'debug', backgroundColor: 'rgba(177, 151, 252, 0.2)', description: '调试' },
+      { pattern: 'DEBUG', backgroundColor: 'rgba(177, 151, 252, 0.2)' },
+    ],
+  },
+
   /*
   ssl:{
     key: 'ssl.key',

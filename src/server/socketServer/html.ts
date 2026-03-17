@@ -1,12 +1,16 @@
 import { isDev } from '../../shared/env.js';
 import type { Request, Response, RequestHandler } from 'express';
+import type { KeywordHighlightConfig } from '../../shared/interfaces.js';
 
 const jsFiles = isDev ? ['dev.js', 'wetty.js'] : ['wetty.js'];
 
 const render = (
   title: string,
   base: string,
-): string => `<!doctype html>
+  keywordHighlight?: KeywordHighlightConfig,
+): string => {
+  const configJson = JSON.stringify({ keywordHighlight });
+  return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf8">
@@ -104,14 +108,18 @@ const render = (
       </div>
     </div>
     <div id="terminal"></div>
+    <script>
+      window.__WETTY_CONFIG__ = ${JSON.stringify({ keywordHighlight })};
+    </script>
     ${jsFiles
         .map(file => `    <script type="module" src="${base}/client/${file}"></script>`)
         .join('\n')
     }
   </body>
 </html>`;
+};
 
-export const html = (base: string, title: string): RequestHandler => (
+export const html = (base: string, title: string, keywordHighlight?: KeywordHighlightConfig): RequestHandler => (
   _req: Request,
   res: Response,
 ): void => {
@@ -119,6 +127,7 @@ export const html = (base: string, title: string): RequestHandler => (
     render(
       title,
       base,
+      keywordHighlight,
     ),
   );
 };

@@ -235,3 +235,11 @@ node build/main.js --conf conf/config.json5
 - 检查 `--command` 参数
 - Windows 上确认使用 `shell` 命令
 - 检查防火墙设置
+
+
+# 测试程序的启动命令
+node tests/wetty-api-test.mjs
+
+
+npx tsc tests/bridge-server.ts --outDir tests/build --esModuleInterop --module ESNext --target ES2020 --moduleResolution node --skipLibCheck
+node tests/build/bridge-server.js
